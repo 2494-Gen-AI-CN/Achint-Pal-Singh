@@ -6,7 +6,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from data import prepare_data
+from .data import prepare_data
 
 
 # Where the trained model will be saved
@@ -16,21 +16,25 @@ MODEL_PATH = Path(__file__).resolve().parent / "models" / "recommender.pt"
 # 1. Define our Artificial Neural Network
 class RecommenderANN(nn.Module):
     def __init__(self, num_users, num_restaurants):
+        """Define two 16-number embedding tables and the 32 -> 64 -> 32 -> 1 rating network."""
         super().__init__()
 
+        # Each known ID gets 16 learnable numbers. Sixteen is a design choice.
+        # PyTorch initializes these weights; training learns useful representations.
         self.user_embedding = nn.Embedding(num_users, 16)
         self.restaurant_embedding = nn.Embedding(num_restaurants, 16)
 
         self.network = nn.Sequential(
-            nn.Linear(32, 64),
-            nn.ReLU(),
+            nn.Linear(32, 64),  # Mix the 32 inputs into 64 intermediate features.
+            nn.ReLU(),  # Replace negative values with zero; preserve feature count.
             nn.Linear(64, 32),
-            nn.ReLU(),
+            nn.ReLU(),  # Replace negative values with zero; preserve feature count.
             nn.Linear(32, 1),
-            nn.Sigmoid()
+            nn.Sigmoid()  # Keep the predicted rating between 0 and 1, not a probability.
         )
 
     def forward(self, users, restaurants):
+        """Look up user/item embeddings, concatenate them, and predict one normalized rating per pair."""
         user_vector = self.user_embedding(users)
         restaurant_vector = self.restaurant_embedding(restaurants)
 
@@ -44,6 +48,7 @@ class RecommenderANN(nn.Module):
 
 # 2. Convert pandas DataFrame to PyTorch tensors
 def make_dataset(frame):
+    """Convert ID indices and normalized target ratings into tensors for PyTorch batches."""
     users = torch.tensor(
         frame["user_idx"].to_numpy(),
         dtype=torch.long
@@ -64,6 +69,7 @@ def make_dataset(frame):
 
 # 3. Evaluate model performance
 def evaluate(model, frame):
+    """Measure MAE and RMSE without changing weights; both errors use the normalized 0-1 scale."""
     if frame.empty:
         return None, None
 
@@ -86,6 +92,7 @@ def evaluate(model, frame):
 
 # 4. Train the neural network
 def train_model():
+    """Train with MSE and Adam, select by validation RMSE, test, and save weights plus ID maps."""
     torch.manual_seed(42)
 
     print("Preparing dataset...", flush=True)
@@ -109,6 +116,7 @@ def train_model():
         weight_decay=0.0001
     )
 
+    # MSE measures final prediction error; Adam updates weights using its gradients.
     loss_function = nn.MSELoss()
 
     train_loader = DataLoader(
@@ -122,19 +130,20 @@ def train_model():
 
     print("\nStarting ANN training...\n", flush=True)
 
+    # One epoch is one complete pass through training ratings, in batches of up to 32.
     for epoch in range(30):
         model.train()
         total_loss = 0.0
 
         for users, restaurants, ratings in train_loader:
-            optimizer.zero_grad()
+            optimizer.zero_grad()  # Clear gradients left over from the previous batch.
 
             predictions = model(users, restaurants)
 
             loss = loss_function(predictions, ratings)
 
-            loss.backward()
-            optimizer.step()
+            loss.backward()  # Compute how each trainable weight affects the error.
+            optimizer.step()  # Adam applies an update; improvement is not guaranteed every step.
 
             total_loss += loss.item() * len(users)
 
@@ -142,9 +151,10 @@ def train_model():
 
         val_mae, val_rmse = evaluate(model, val)
 
+        # Validation selects the best epoch. Test ratings never select these weights.
         if val_rmse is not None and val_rmse < best_val_rmse:
             best_val_rmse = val_rmse
-            best_weights = copy.deepcopy(model.state_dict())
+            best_weights = copy.deepcopy(model.state_dict())  # Freeze a copy; later epochs keep changing weights.
 
         print(
             f"Epoch {epoch + 1:02d}/30 | "

@@ -1,0 +1,7 @@
+# Versions already installed in the working project environment.
+torch==2.14.1
+pandas==3.0.6
+scikit-learn==1.9.1
+fastapi==0.143.2
+pydantic==2.14.1
+uvicorn==0.54.0

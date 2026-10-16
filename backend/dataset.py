@@ -16,10 +16,17 @@ FILES = [
     "rating_final.csv",
     "geoplaces2.csv",
     "chefmozcuisine.csv",
+    "chefmozaccepts.csv",
+    "chefmozparking.csv",
+    "chefmozhours4.csv",
+    "usercuisine.csv",
+    "userpayment.csv",
+    "userprofile.csv",
 ]
 
 
 def download_dataset():
+    """Download the nine UCI CSVs used for ratings, restaurant details, and saved preferences."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     print("Downloading restaurant dataset from UCI...")

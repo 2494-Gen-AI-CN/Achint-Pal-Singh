@@ -8,12 +8,10 @@ DATA_DIR = Path(__file__).resolve().parent / "data"
 
 
 def load_data():
+    """Clean duplicate/missing ratings, join restaurant details, and scale ratings from 0-2 to 0-1."""
     ratings = pd.read_csv(DATA_DIR / "rating_final.csv")
-    restaurants = pd.read_csv(
-    DATA_DIR / "geoplaces2.csv",
-    encoding="latin-1"
-)
-    # restaurants = pd.read_csv(DATA_DIR / "geoplaces2.csv")
+    # This source CSV uses Latin-1 text encoding for restaurant names.
+    restaurants = pd.read_csv(DATA_DIR / "geoplaces2.csv", encoding="latin-1")
 
     ratings = ratings[
         ["userID", "placeID", "rating"]
@@ -39,6 +37,7 @@ def load_data():
 
 
 def prepare_data():
+    """Create train/validation/test ratings and map known IDs to embedding-table indices."""
     ratings, restaurants = load_data()
 
     # Use only users and restaurants with sufficient interactions.
@@ -59,7 +58,8 @@ def prepare_data():
     if len(ratings) < 10:
         raise ValueError("Not enough ratings to train the model.")
 
-    # Keep at least one interaction per user in training.
+    # Hold out one rating per user for the final test, then split the remaining
+    # ratings for training/validation. These are held-out ratings, not new users.
     held_out = (
         ratings.groupby("userID", group_keys=False)
         .sample(n=1, random_state=42)
@@ -80,6 +80,7 @@ def prepare_data():
     known_places = set(train["placeID"])
 
     def move_cold_rows(source, training):
+        """Move held-out ratings with unknown IDs into training so embedding lookup is possible."""
         cold = source[
             ~source["userID"].isin(known_users)
             | ~source["placeID"].isin(known_places)
@@ -100,6 +101,7 @@ def prepare_data():
     user_ids = sorted(train["userID"].unique())
     place_ids = sorted(train["placeID"].unique())
 
+    # Encoding creates lookup indices only; embeddings are learned later in train.py.
     user_map = {user: idx for idx, user in enumerate(user_ids)}
     restaurant_map = {
         place: idx for idx, place in enumerate(place_ids)

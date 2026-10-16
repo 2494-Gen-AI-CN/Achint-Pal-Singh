@@ -17,3 +17,6 @@ frontend/dist/
 frontend/vite-temp/
 frontend/.vite/
 .vscode/
+
+# Local archives contain installers and duplicate source data, not application code.
+archive/
