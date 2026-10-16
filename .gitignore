@@ -1,35 +1,19 @@
-@"
 .venv/
 venv/
 __pycache__/
 *.pyc
-
 data/
 Dataset/
 models/*.pt
 models/*.pth
-
 python.exe
 python_install.log
 python_installer.msi
-
 .env
 .env.*
 !.env.example
-# React / Vite
 frontend/node_modules/
 frontend/dist/
 frontend/vite-temp/
 frontend/.vite/
-
-# Environment
-.venv/
-__pycache__/
-*.pyc
-
-# Trained model and datasets
-models/*.pt
-data/
-Dataset/
 .vscode/
-"@ | Set-Content .gitignore
