@@ -51,6 +51,20 @@ button:disabled { opacity: .65; cursor: wait; }
 .rank { font: italic 26px Georgia, serif; color: #9a593d; }
 .price { text-transform: capitalize; background: #edf0e5; border: 0; }
 .restaurant-card h3 { font: 25px/1.2 Georgia, serif; margin: 0 0 12px; }
+.restaurant-identity { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.restaurant-identity h3 { margin: 0; min-width: 0; }
+.restaurant-monogram { flex: 0 0 56px; width: 56px; height: 64px; border: 1px solid #ccd7c3; border-radius: 18px 18px 8px 8px; background: #edf0e5; color: #34543b; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.restaurant-monogram svg { width: 20px; height: 20px; }
+.restaurant-monogram > span { font: 700 17px Georgia, serif; letter-spacing: 1px; }
+.restaurant-card:nth-child(3n + 2) .restaurant-monogram { background: #f3e8dc; border-color: #e1cdb6; color: #8a4d2f; }
+.restaurant-card:nth-child(3n) .restaurant-monogram { background: #e8edee; border-color: #cbd5d7; color: #42616b; }
+.maps-link { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; border: 1px solid #cbd6c7; border-radius: 7px; padding: 10px 12px; min-height: 46px; color: #254d3a; font-size: 12px; font-weight: 700; }
+.maps-link > span:first-child { display: flex; align-items: center; gap: 8px; }
+.maps-link svg { width: 17px; height: 19px; flex-shrink: 0; }
+.maps-arrow { display: grid; place-items: center; flex: 0 0 26px; height: 26px; border-radius: 50%; background: #e7ecdc; font-size: 17px; }
+.maps-link:hover { background: #edf0e5; border-color: #7e9577; }
+.maps-link:hover .maps-arrow { background: #254d3a; color: #fffefa; }
+.maps-note { margin: 8px 0 0; font-size: 10px; line-height: 1.6; color: #687460; }
 .location, .cuisines { font-size: 12px; line-height: 1.6; color: #677263; margin: 0 0 10px; }
 .cuisines { color: #42563e; }
 .score { display: flex; align-items: center; gap: 14px; border-top: 1px solid #e2e5da; margin-top: 8px; padding-top: 18px; }

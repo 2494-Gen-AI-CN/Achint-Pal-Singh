@@ -5,6 +5,16 @@ const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000").replac
 const BRAND = import.meta.env.VITE_GUIDE_NAME || "California Restaurant Guide";
 const label = (value) => value.replaceAll("_", " ");
 
+function restaurantInitials(name) {
+  return name.trim().split(/\s+/).slice(0, 2).map((word) => Array.from(word)[0]).join("").toLocaleUpperCase();
+}
+
+function mapsSearchUrl(restaurant) {
+  const query = [restaurant.name, restaurant.city, restaurant.state, restaurant.country]
+    .filter(Boolean).join(", ");
+  return `https://www.google.com/maps/search/?${new URLSearchParams({ api: "1", query })}`;
+}
+
 async function request(path, options = {}) {
   const response = await fetch(`${API_URL}${path}`, { ...options, signal: AbortSignal.timeout(20000) });
   const data = await response.json();
@@ -108,12 +118,23 @@ export default function App() {
           {results.recommendations.length === 0 ? <div className="empty"><h3>No exact matches this time.</h3><p>Try any cuisine, a different budget, or any dining space to explore more of the catalog.</p></div> : <div className="restaurant-grid">
             {results.recommendations.map((restaurant, index) => <article className="restaurant-card" key={restaurant.restaurant_id}>
               <div className="card-top"><span className="rank">{String(index + 1).padStart(2, "0")}</span><span className="price">{restaurant.price ? `${restaurant.price} budget` : "Budget unrecorded"}</span></div>
-              <h3>{restaurant.name}</h3>
+              <div className="restaurant-identity">
+                <span className="restaurant-monogram" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 3v5a3 3 0 0 0 6 0V3M7 3v18M17 3c-2 3-3 6-3 10h5M19 3v18" /></svg>
+                  <span>{restaurantInitials(restaurant.name)}</span>
+                </span>
+                <h3>{restaurant.name}</h3>
+              </div>
               <p className="location">{[restaurant.city, restaurant.state, restaurant.country].filter(Boolean).join(", ") || "Location unrecorded"}{!restaurant.country && " · country unrecorded"}</p>
               <p className="cuisines">{restaurant.cuisines.length ? restaurant.cuisines.map(label).join(" · ") : "Cuisine unrecorded"}</p>
               <div className="score"><strong>{restaurant.score.toFixed(2)}<small> / 2</small></strong><span>Bayesian ranking score</span></div>
               <p className="explanation">{restaurant.explanation}</p>
               <div className="card-footer"><span>{restaurant.rating_count} historical ratings</span><span>Demo record</span></div>
+              <a className="maps-link" href={mapsSearchUrl(restaurant)} target="_blank" rel="noopener noreferrer" aria-label={`Search for ${restaurant.name} on Google Maps (opens in a new tab)`}>
+                <span><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>Search Google Maps</span>
+                <span className="maps-arrow" aria-hidden="true">↗</span>
+              </a>
+              <p className="maps-note">Uses recorded name and location · Listing unverified</p>
             </article>)}
           </div>}
         </section>}
